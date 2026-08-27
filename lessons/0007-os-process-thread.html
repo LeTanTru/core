@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bài 07 · OS Foundations: Process vs Thread</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="lesson.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <span class="lesson-tag">Module 2 · Bài 07</span>
+      <h1>
+        OS Foundations: Process vs Thread, Context Switching &amp; Concurrency
+      </h1>
+      <p class="subtitle">
+        Hiểu sự khác biệt Process vs Thread và tại sao JavaScript chọn
+        single-threaded event loop.
+      </p>
+      <p class="meta-line">
+        ⏱ ~20 phút · 🎯 Mục tiêu: Giải thích được Process isolation, Thread race
+        condition, và lý do JS dùng single-thread thay vì multi-thread.
+      </p>
+
+      <div class="callout bridge">
+        <div class="ct">🌉 Bắc cầu từ cái bạn đã biết</div>
+        <p>
+          <strong>Process như căn nhà riêng</strong> — mỗi nhà có cổng khóa, bộ
+          nhớ riêng, không ai vào nhà người khác được.
+          <strong>Thread như người trong một căn nhà</strong> — cùng chia sẻ
+          phòng bếp, phòng khách (bộ nhớ). Khi bạn mở Chrome với 5 tab → Chrome
+          spawn 5 process riêng biệt (Site Isolation): tab lỗi không crash tab
+          khác.
+        </p>
+      </div>
+
+      <!-- 1. PROCESS -->
+      <h2>1. Process — Ngôi nhà với ổ khóa riêng</h2>
+      <p>
+        Một <strong>process</strong> là instance đang chạy của một chương trình.
+        OS cấp cho mỗi process:
+      </p>
+      <ul>
+        <li>
+          <strong>Virtual address space riêng</strong> (stack + heap + code +
+          data segment)
+        </li>
+        <li><strong>File descriptor table</strong> riêng (mở file, socket)</li>
+        <li>
+          <strong>Trạng thái CPU riêng</strong> (registers, program counter)
+        </li>
+      </ul>
+
+      <div class="callout why">
+        <div class="ct">💡 Vì sao isolation quan trọng?</div>
+        <p>
+          <strong>Fault isolation</strong>: process A crash → chỉ A chết,
+          process B không bị ảnh hưởng. Chrome dùng điều này: mỗi tab là một
+          Renderer Process riêng. Nếu tab YouTube crash vì WebGL lỗi, Gmail vẫn
+          sống. <br /><strong>Security isolation</strong>: process A không thể
+          đọc bộ nhớ của process B → ngăn tấn công Spectre/Meltdown
+          cross-process.
+        </p>
+        <p>
+          <strong>Trade-off</strong>: Spawn process nặng — cần sao chép toàn bộ
+          address space (fork), tốn ~1–5ms, RAM riêng. Giao tiếp giữa process
+          (IPC) phải qua pipe, socket, shared memory — phức tạp và chậm hơn
+          thread.
+        </p>
+      </div>
+
+      <h3>Inter-Process Communication (IPC)</h3>
+      <p>Vì process không chia sẻ bộ nhớ, chúng cần IPC để nói chuyện:</p>
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Cơ chế IPC</th>
+            <th>Đặc điểm</th>
+            <th>Ví dụ trong browser</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pipe / Named Pipe</td>
+            <td>Một chiều, FIFO</td>
+            <td>stdout → stdin giữa process cha/con</td>
+          </tr>
+          <tr>
+            <td>Unix Domain Socket</td>
+            <td>Hai chiều, nhanh</td>
+            <td>Renderer ↔ Browser process</td>
+          </tr>
+          <tr>
+            <td>Shared Memory</td>
+            <td>Cực nhanh, nhưng cần mutex</td>
+            <td>GPU Process chia sẻ frame buffer</td>
+          </tr>
+          <tr>
+            <td>Message Passing</td>
+            <td>An toàn nhất (copy data)</td>
+            <td>postMessage() giữa window/iframe</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 2. THREAD -->
+      <h2>2. Thread — Người trong cùng một căn nhà</h2>
+      <p>
+        Một <strong>thread</strong> là đơn vị thực thi nhỏ hơn process. Các
+        thread trong cùng process <strong>chia sẻ</strong> address space (heap,
+        global variables, file descriptors) nhưng mỗi thread có stack riêng.
+      </p>
+
+      <table class="data">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Process</th>
+            <th>Thread</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bộ nhớ</td>
+            <td>Riêng hoàn toàn</td>
+            <td>Chia sẻ heap, globals</td>
+          </tr>
+          <tr>
+            <td>Stack</td>
+            <td>Riêng</td>
+            <td>Riêng (mỗi thread)</td>
+          </tr>
+          <tr>
+            <td>Spawn cost</td>
+            <td>Cao (~MB RAM, ms)</td>
+            <td>Thấp (~KB, µs)</td>
+          </tr>
+          <tr>
+            <td>Giao tiếp</td>
+            <td>IPC (chậm, phức tạp)</td>
+            <td>Shared memory (nhanh, nguy hiểm)</td>
+          </tr>
+          <tr>
+            <td>Crash isolation</td>
+            <td>✅ An toàn</td>
+            <td>❌ 1 thread crash → cả process chết</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Race Condition — Cạnh tranh điều kiện</h3>
+      <p>
+        Vì thread chia sẻ bộ nhớ, khi 2 thread đọc-sửa-ghi cùng một biến
+        <em>không có đồng bộ hóa</em>, kết quả không xác định:
+      </p>
+
+      <div class="code-block">
+        <div class="code-label">
+          Pseudo-code · Race condition với shared counter
+        </div>
+        <pre><code><span class="cmt">// Biến chia sẻ — cả 2 thread cùng đọc/ghi</span>
+<span class="kw">let</span> counter = <span class="num">0</span>;
+
+<span class="cmt">// Thread A và Thread B chạy đồng thời (parallel)</span>
+<span class="cmt">// Cả hai đều thực hiện: counter = counter + 1</span>
+
+<span class="cmt">// Thực tế CPU thực hiện 3 bước:</span>
+<span class="cmt">// 1. READ: đọc counter (= 0) vào register</span>
+<span class="cmt">// 2. ADD:  cộng 1 → register = 1</span>
+<span class="cmt">// 3. WRITE: ghi register (1) trở lại counter</span>
+
+<span class="cmt">// Nếu Thread A và B đều READ trước khi WRITE:</span>
+<span class="cmt">// A đọc 0, B đọc 0, A ghi 1, B ghi 1 → counter = 1 (sai! Phải là 2)</span></code></pre>
+      </div>
+
+      <h3>Mutex / Lock — Chìa khóa chỉ có một bản</h3>
+      <p>
+        Giải pháp: dùng <strong>mutex (mutual exclusion)</strong> — chỉ 1 thread
+        được vào "vùng nguy hiểm" (critical section) tại một thời điểm. Thread
+        khác phải đợi (block). Trade-off: giải quyết race condition nhưng tạo ra
+        bottleneck + nguy cơ <strong>deadlock</strong> (2 thread chờ nhau mãi
+        mãi).
+      </p>
+
+      <!-- 3. CONTEXT SWITCHING -->
+      <h2>3. Context Switching — Chi phí ẩn</h2>
+      <p>
+        CPU chỉ có N core. Để chạy M thread (M &gt; N), OS phải liên tục
+        <strong>context switch</strong>: lưu trạng thái thread đang chạy
+        (registers, program counter, stack pointer) → nạp trạng thái thread tiếp
+        theo.
+      </p>
+
+      <div class="callout warn">
+        <div class="ct">⚠️ Context switch không miễn phí</div>
+        <p>
+          Mỗi context switch tốn <strong>1–10µs</strong> (save/restore registers
+          + flush TLB + cache miss do địa chỉ bộ nhớ thay đổi). Với hàng ngàn
+          thread, CPU dành phần lớn thời gian cho context switching thay vì công
+          việc thực tế — gọi là <strong>thrashing</strong>.
+        </p>
+        <p>
+          Đây là lý do Node.js server dùng event loop (1 thread) thay vì
+          multi-thread (1 thread/request như PHP truyền thống) có thể handle
+          hàng chục nghìn concurrent connections mà không bị thrash.
+        </p>
+      </div>
+
+      <!-- 4. CONCURRENCY vs PARALLELISM -->
+      <h2>4. Concurrency vs Parallelism — Hai khái niệm khác nhau</h2>
+
+      <table class="data">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Concurrency (Đồng thời)</th>
+            <th>Parallelism (Song song)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Định nghĩa</td>
+            <td>Xử lý nhiều việc bằng cách xen kẽ (interleaving)</td>
+            <td>Thực sự chạy đồng thời trên nhiều core</td>
+          </tr>
+          <tr>
+            <td>Yêu cầu</td>
+            <td>1 CPU core là đủ</td>
+            <td>Cần &gt;1 CPU core</td>
+          </tr>
+          <tr>
+            <td>Ví dụ</td>
+            <td>Event loop của Node.js</td>
+            <td>Worker threads, GPU shader</td>
+          </tr>
+          <tr>
+            <td>Phép ẩn dụ</td>
+            <td>Bếp trưởng xoay xở 5 chảo một mình</td>
+            <td>5 đầu bếp mỗi người một chảo</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        JavaScript là <em>concurrent</em> (event loop xử lý nhiều callback xen
+        kẽ) nhưng <em>không parallel</em> (chỉ 1 thread JS chính). Web Workers
+        cho phép parallel nhưng không chia sẻ state.
+      </p>
+
+      <!-- 5. TẠI SAO JS SINGLE-THREADED -->
+      <h2>5. Tại sao JavaScript chọn single-threaded?</h2>
+
+      <div class="callout why">
+        <div class="ct">💡 Lý do lịch sử + thiết kế</div>
+        <p>
+          <strong>1995 — Brendan Eich</strong> thiết kế JavaScript cho Netscape
+          Navigator. Mục tiêu: ngôn ngữ đơn giản để web designer (không phải lập
+          trình viên) dùng được. Multi-threading phức tạp, dễ gây deadlock/race
+          condition → chọn single-thread.
+        </p>
+        <p><strong>Lợi thế của single-thread:</strong></p>
+        <ul>
+          <li>
+            ✅ <strong>Không cần mutex/lock</strong> cho DOM manipulation → DOM
+            API đơn giản hơn nhiều
+          </li>
+          <li>
+            ✅ <strong>Không có race condition</strong> trong code JS thông
+            thường
+          </li>
+          <li>
+            ✅ <strong>Event loop xử lý I/O bất đồng bộ</strong> cực kỳ hiệu quả
+            (non-blocking I/O)
+          </li>
+          <li>✅ Code dễ debug, dễ reason về thứ tự thực thi</li>
+        </ul>
+        <p><strong>Nhược điểm:</strong></p>
+        <ul>
+          <li>
+            ❌ CPU-intensive task (hash, image processing, ML inference) sẽ
+            block main thread → UI freeze
+          </li>
+          <li>
+            ❌ Không tận dụng được CPU multi-core trực tiếp trong code JS thông
+            thường
+          </li>
+        </ul>
+      </div>
+
+      <!-- 6. WEB WORKERS -->
+      <h2>6. Web Workers — Parallel trong Browser</h2>
+      <p>
+        Web Workers (<a
+          href="https://html.spec.whatwg.org/multipage/workers.html"
+          target="_blank"
+          >HTML Living Standard</a
+        >) cho phép chạy JS trong thread riêng biệt,
+        <strong>không có quyền truy cập DOM</strong>. Giao tiếp qua
+        <code>postMessage()</code> — truyền bản sao dữ liệu (structured clone),
+        không chia sẻ reference.
+      </p>
+
+      <div class="code-block">
+        <div class="code-label">
+          JavaScript · Web Worker — offload CPU-intensive task
+        </div>
+        <pre><code><span class="cmt">// === main.js (chạy trên main thread) ===</span>
+
+<span class="cmt">// Tạo Worker — chạy trong OS thread riêng biệt</span>
+<span class="kw">const</span> worker = <span class="kw">new</span> <span class="fn">Worker</span>(<span class="str">'worker.js'</span>);
+
+<span class="cmt">// Gửi dữ liệu sang Worker (structured clone — COPY, không share reference)</span>
+worker.<span class="fn">postMessage</span>({ task: <span class="str">'sum'</span>, data: [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span> <span class="cmt">/* ... 1 triệu phần tử */</span>] });
+
+<span class="cmt">// Nhận kết quả — main thread KHÔNG bị block trong lúc đợi</span>
+worker.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, (e) => {
+  console.<span class="fn">log</span>(<span class="str">'Kết quả:'</span>, e.data.result);
+  worker.<span class="fn">terminate</span>(); <span class="cmt">// dọn dẹp Worker khi xong</span>
+});
+
+<span class="cmt">// UI vẫn mượt — event loop main thread tiếp tục chạy</span>
+
+<span class="cmt">// === worker.js (chạy trên Worker thread) ===</span>
+self.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, ({ data: { task, data } }) => {
+  <span class="kw">if</span> (task === <span class="str">'sum'</span>) {
+    <span class="cmt">// Tính toán nặng — không ảnh hưởng main thread</span>
+    <span class="kw">const</span> result = data.<span class="fn">reduce</span>((acc, n) => acc + n, <span class="num">0</span>);
+    self.<span class="fn">postMessage</span>({ result }); <span class="cmt">// trả kết quả về main</span>
+  }
+});</code></pre>
+      </div>
+
+      <!-- 7. CODE DEMO VITEST -->
+      <h2>7. Code Demo Vitest: Mô phỏng Race Condition</h2>
+
+      <div class="code-block">
+        <div class="code-label">Vitest · race-condition.test.js</div>
+        <pre><code><span class="kw">import</span> { test, expect } <span class="kw">from</span> <span class="str">'vitest'</span>;
+
+<span class="cmt">// Mô phỏng "yield" giống context switch giữa 2 task bất đồng bộ</span>
+<span class="kw">const</span> <span class="fn">yield_</span> = () => <span class="kw">new</span> <span class="fn">Promise</span>(r => <span class="fn">setTimeout</span>(r, <span class="num">0</span>));
+
+<span class="cmt">// Task KHÔNG an toàn: yield giữa READ và WRITE → race condition</span>
+<span class="kw">async function</span> <span class="fn">unsafeIncrement</span>(state, times) {
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; times; i++) {
+    <span class="kw">const</span> val = state.counter; <span class="cmt">// READ — đọc giá trị hiện tại</span>
+    <span class="kw">await</span> <span class="fn">yield_</span>();            <span class="cmt">// "context switch" — task khác chen vào đây!</span>
+    state.counter = val + <span class="num">1</span>;   <span class="cmt">// WRITE — ghi lại giá trị cũ + 1</span>
+  }
+}
+
+<span class="fn">test</span>(<span class="str">'race condition: 2 task +3 mỗi task → kỳ vọng 6 nhưng ra ít hơn'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> state = { counter: <span class="num">0</span> };
+
+  <span class="cmt">// Chạy 2 task "đồng thời" — xen kẽ nhau tại mỗi await</span>
+  <span class="kw">await</span> Promise.<span class="fn">all</span>([
+    <span class="fn">unsafeIncrement</span>(state, <span class="num">3</span>), <span class="cmt">// Task A muốn +3</span>
+    <span class="fn">unsafeIncrement</span>(state, <span class="num">3</span>), <span class="cmt">// Task B muốn +3</span>
+  ]);
+
+  <span class="cmt">// Kết quả thực tế thường là 3, không phải 6!</span>
+  <span class="cmt">// Vì mỗi lần A và B cùng đọc val=cùng giá trị, một increment bị mất</span>
+  console.<span class="fn">log</span>(<span class="str">'Counter với race:'</span>, state.counter); <span class="cmt">// thường in ra 3</span>
+  expect(state.counter).<span class="fn">toBeLessThan</span>(<span class="num">6</span>); <span class="cmt">// ✅ race condition xảy ra</span>
+});
+
+<span class="cmt">// Task AN TOÀN: không yield giữa READ-WRITE → không race condition</span>
+<span class="kw">async function</span> <span class="fn">safeIncrement</span>(state, times) {
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i &lt; times; i++) {
+    state.counter++; <span class="cmt">// atomic trong JS: read-add-write không bị ngắt</span>
+  }
+}
+
+<span class="fn">test</span>(<span class="str">'safe: tuần tự, không yield → luôn đúng'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> state = { counter: <span class="num">0</span> };
+  <span class="kw">await</span> <span class="fn">safeIncrement</span>(state, <span class="num">3</span>); <span class="cmt">// hoàn tất +3 trước</span>
+  <span class="kw">await</span> <span class="fn">safeIncrement</span>(state, <span class="num">3</span>); <span class="cmt">// rồi mới +3 tiếp</span>
+  expect(state.counter).<span class="fn">toBe</span>(<span class="num">6</span>); <span class="cmt">// ✅ luôn chính xác</span>
+});</code></pre>
+      </div>
+
+      <!-- PHỎNG VẤN & ÔN TẬP THỰC CHIẾN -->
+      <div class="callout warn">
+        <div class="ct">
+          🎯 Bộ câu hỏi thực tế ôn tập &amp; Phỏng vấn thực chiến
+        </div>
+        <ol style="margin: 8px 0 0; padding-left: 20px; line-height: 1.6">
+          <li style="margin-bottom: 12px">
+            <strong
+              >Câu hỏi 1: JavaScript là single-threaded. Vậy làm sao Node.js /
+              Browser xử lý được hàng nghìn tác vụ đồng thời mà không bị
+              treo?</strong
+            >
+            <br /><span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> JS Engine chỉ chạy single-thread
+              cho phần tính toán đồng bộ trên Call Stack, nhưng các tác vụ I/O
+              (network fetch, disk read, timers) được
+              <strong
+                >ủy thác sang Web APIs (trên Browser) hoặc libuv thread pool
+                (trên Node.js)</strong
+              >
+              chạy ngầm ở background OS threads. Khi I/O hoàn tất, callback được
+              đẩy vào Queue để Event Loop lấy lên Call Stack khi stack rỗng. Đây
+              là mô hình <em>Concurrency (xen kẽ)</em> qua Non-blocking
+              I/O.</span
+            >
+          </li>
+          <li style="margin-bottom: 12px">
+            <strong
+              >Câu hỏi 2: Tại sao Google Chrome lại chấp nhận tốn nhiều RAM để
+              chạy Multi-Process (Site Isolation) thay vì dùng Multi-Threading
+              gọn nhẹ hơn?</strong
+            >
+            <br /><span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> Chrome ưu tiên 2 yếu tố sống còn:
+              <strong>Fault Isolation</strong> (tab này crash hoặc dính lỗi
+              WebGL/vòng lặp vô hạn thì các tab khác vẫn hoạt động bình thường,
+              không làm sập cả trình duyệt) và
+              <strong>Security Isolation</strong> (ngăn chặn tấn công rò rỉ bộ
+              nhớ cross-site như lỗ hổng phần cứng Spectre/Meltdown vì 2 domain
+              khác nhau không thể đọc chung vùng nhớ Process của nhau). Đánh đổi
+              RAM lấy sự ổn định và bảo mật.</span
+            >
+          </li>
+          <li style="margin-bottom: 12px">
+            <strong
+              >Câu hỏi 3 (Tình huống Frontend thực tế): Trong React/Vue, Race
+              Condition khi gọi API tìm kiếm (Autocomplete/Search) xảy ra như
+              thế nào và cách xử lý triệt để?</strong
+            >
+            <br /><span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> Khi người dùng gõ nhanh từ
+              <code>"re"</code> sang <code>"react"</code>, 2 request API được
+              gửi đi. Nếu request <code>"re"</code> gặp độ trễ mạng và phản hồi
+              chậm hơn request <code>"react"</code>, kết quả của
+              <code>"re"</code> sẽ về sau cùng và ghi đè lên UI, hiển thị sai dữ
+              liệu. <strong>Khắc phục:</strong> Sử dụng
+              <code>AbortController</code> để hủy request cũ trước khi phát
+              request mới, hoặc dùng biến
+              <code>requestId / active flag</code> trong cleanup effect để bỏ
+              qua response đã hết hạn.</span
+            >
+          </li>
+          <li>
+            <strong
+              >Câu hỏi 4: Web Worker giao tiếp với Main Thread qua cơ chế nào và
+              tại sao nó không được phép thao tác trực tiếp với DOM?</strong
+            >
+            <br /><span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> Web Worker giao tiếp qua
+              <code>postMessage()</code> sử dụng thuật toán
+              <em>Structured Clone</em> (sao chép dữ liệu, không chia sẻ vùng
+              nhớ con trỏ). Web Worker bị cấm truy cập DOM vì nếu nhiều thread
+              cùng lúc sửa đổi cây DOM sẽ dẫn tới Race Conditions và Deadlock
+              trên layout tree, phá vỡ kiến trúc single-thread đơn giản và an
+              toàn của web.</span
+            >
+          </li>
+        </ol>
+      </div>
+
+      <!-- QUIZ -->
+      <div class="quiz">
+        <h3>🧠 Kiểm tra nhanh (feedback ngay)</h3>
+
+        <div class="q">
+          Câu 1. Chrome mở 3 tab, mỗi tab dùng một Renderer Process riêng. Lý do
+          chính là gì?
+        </div>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Tốc độ không phải lý do chính — thực ra multi-process tốn RAM hơn single-process. Lý do chính là isolation."
+        >
+          A. Để render nhanh hơn vì chạy song song
+        </button>
+        <button
+          class="opt"
+          data-correct="true"
+          data-explain="Đúng! Fault isolation (tab crash không ảnh hưởng tab khác) + Security isolation (tab không đọc được bộ nhớ tab khác — ngăn Spectre). Đây là Site Isolation của Chrome."
+        >
+          B. Fault isolation + security isolation — tab crash không ảnh hưởng
+          tab khác
+        </button>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Sai — IPC giữa process chậm hơn, không nhanh hơn thread communication."
+        >
+          C. Vì process giao tiếp qua IPC nhanh hơn thread
+        </button>
+        <div class="feedback"></div>
+
+        <div class="q">
+          Câu 2. Điều gì xảy ra khi 2 thread cùng thực hiện
+          <code>counter++</code> trên biến shared mà không có mutex?
+        </div>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Sai — counter++ gồm 3 bước CPU: read-modify-write. Giữa 3 bước này context switch có thể xảy ra → không atomic."
+        >
+          A. Kết quả luôn đúng vì CPU đảm bảo atomic
+        </button>
+        <button
+          class="opt"
+          data-correct="true"
+          data-explain="Đúng! Race condition: 2 thread có thể cùng đọc giá trị cũ trước khi thread kia ghi → một lần increment bị mất. Kết quả không xác định (non-deterministic)."
+        >
+          B. Race condition — có thể mất một lần increment, kết quả không xác
+          định
+        </button>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Sai — race condition là silent bug, không crash. Nguy hiểm ở chỗ chương trình vẫn chạy nhưng cho kết quả sai."
+        >
+          C. Chương trình sẽ crash ngay lập tức
+        </button>
+        <div class="feedback"></div>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div class="callout tip">
+        <div class="ct">✅ Bạn vừa đạt được</div>
+        <ul class="checklist">
+          <li>
+            Giải thích được Process vs Thread: isolation, overhead, trade-offs
+            cụ thể
+          </li>
+          <li>
+            Hiểu race condition là gì và tại sao mutex cần thiết (+ nguy cơ
+            deadlock)
+          </li>
+          <li>
+            Phân biệt chính xác Concurrency (xen kẽ) vs Parallelism (song song
+            thực sự)
+          </li>
+          <li>
+            Giải thích lý do lịch sử và lợi thế của JavaScript single-thread
+          </li>
+          <li>Biết Web Workers giải quyết CPU-bound mà không block UI</li>
+        </ul>
+      </div>
+
+      <h2>8. Câu hỏi tư duy (bắc cầu sang bài sau)</h2>
+      <p>
+        Khi JavaScript chạy, V8 engine cấp phát bộ nhớ ở đâu cho biến số, chuỗi,
+        object? Khi function kết thúc, bộ nhớ đó được giải phóng thế nào? Có khi
+        nào bộ nhớ "rò rỉ" trong JS không, và làm sao phát hiện?
+      </p>
+
+      <div class="next-box">
+        <div class="nl">→ Bài tiếp theo</div>
+        <div class="nt">
+          Bài 08 · V8 Engine Internals: Call Stack, Memory Heap &amp; GC
+        </div>
+        <p class="nd">
+          Khám phá bên trong V8: cách Ignition biên dịch bytecode, TurboFan JIT
+          optimize hot code, Scavenger dọn Young Generation và
+          Mark-Sweep-Compact xử lý Old Generation — để viết code tránh memory
+          leak.
+        </p>
+      </div>
+
+      <div class="navbar">
+        <a href="#" class="disabled">← Trước</a>
+        <a href="index.html">🏠 Mục lục</a>
+        <a href="0008-v8-engine-gc.html">Sau →</a>
+      </div>
+
+      <p class="try-it">
+        💬 <strong>Tôi là người dạy của bạn.</strong> Hỏi lại bất cứ điều gì
+        chưa rõ nhé!
+      </p>
+    </div>
+    <script src="lesson-enhance.js"></script>
+  </body>
+</html>

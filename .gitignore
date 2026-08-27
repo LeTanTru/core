@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build and test artifacts
+dist/
+build/
+coverage/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local agent & tooling settings
+.claude/settings.local.json
+.agents/settings.local.json

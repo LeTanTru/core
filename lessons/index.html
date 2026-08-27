@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lộ trình IT Core Toàn Diện cho Frontend Intern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lesson.css">
+<style>
+  /* ===== Trang mục lục tổng quan ===== */
+  .hero { text-align: center; margin-bottom: 14px; }
+  .hero h1 { font-size: 2.2rem; }
+  .progress-wrap { margin: 26px 0 40px; }
+  .progress-bar { height: 10px; background: var(--bg-card); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 999px; }
+  .progress-label { text-align: center; color: var(--text-dim); font-size: 14px; margin-top: 8px; }
+
+  /* Module container */
+  .module { margin: 36px 0; }
+  .module-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .module-num { font-family: var(--mono); color: var(--accent); font-weight: 600; font-size: 14px; }
+  .module-head h2 { border: none; margin: 14px 0 2px; padding: 0; font-size: 1.35rem; }
+  .module-why { color: var(--text-dim); font-size: 14px; margin: 0 0 12px; }
+
+  /* Danh sách bài học */
+  .lessons-list { list-style: none; padding: 0; margin: 0 0 14px; }
+  .lessons-list li { margin: 8px 0; }
+  .lessons-list a, .lessons-list span.soon {
+    display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg-soft); font-size: 15px;
+  }
+  .lessons-list a { color: var(--text); text-decoration: none; border-bottom: none; }
+  .lessons-list a:hover { border-color: var(--accent); background: var(--bg-card); }
+  .lessons-list span.soon { color: var(--text-dim); border-style: dashed; }
+  
+  .lesson-row-top { display: flex; align-items: center; gap: 10px; width: 100%; }
+  .lesson-desc { font-size: 13px; color: var(--text-dim); margin-left: 2px; line-height: 1.4; }
+  
+  .badge { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
+  .badge.done { background: rgba(74,222,128,.15); color: var(--green); }
+  .badge.now  { background: rgba(56,189,248,.15); color: var(--accent); }
+  .badge.soon { background: #232838; color: var(--text-dim); }
+  .lcount { margin-left: auto; font-size: 12px; color: var(--text-dim); font-family: var(--mono); }
+
+  /* Intro card */
+  .intro-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--accent-2); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 10px; }
+
+  /* Câu hỏi thực tế mỗi module */
+  .real-q {
+    background: rgba(167,139,250,.06); border: 1px solid rgba(167,139,250,.25);
+    border-left: 4px solid var(--accent-2); border-radius: var(--radius);
+    padding: 16px 20px; margin: 14px 0 0;
+  }
+  .real-q .rq-title { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .real-q ol { margin: 0; padding-left: 20px; }
+  .real-q li { font-size: 14px; color: var(--text-soft); margin: 8px 0; line-height: 1.5; }
+  .real-q li strong { color: #fff; }
+  .real-q .hint { font-size: 12.5px; color: var(--text-dim); display: block; margin-top: 3px; font-style: italic; }
+
+  /* Link cheat-sheet */
+  .ref-link {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+    font-size: 13px; color: var(--accent-2); border: 1px solid rgba(167,139,250,.3);
+    background: rgba(167,139,250,.06); padding: 6px 14px; border-radius: 8px;
+    text-decoration: none; border-bottom: none; font-weight: 500;
+  }
+  .ref-link:hover { border-color: var(--accent-2); background: rgba(167,139,250,.12); color: #fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <span class="lesson-tag">🚀 IT Core Knowledge · Frontend Intern Mastery</span>
+    <h1>Lộ Trình IT Core Toàn Diện Cho Frontend Intern</h1>
+    <p class="subtitle">Đào sâu bản chất từ Giao thức Mạng → Hệ điều hành &amp; V8 → JS Deep Core → Critical Rendering Path → Lưu trữ &amp; Bảo mật Web → Hiệu năng &amp; Git Internals.</p>
+  </div>
+
+  <div class="intro-card">
+    <strong>Tư duy Bottom-Up vững chắc cho Frontend Intern:</strong> Không học vẹt framework, tập trung vào bản chất hoạt động bên dưới của web platform: <em>Packet di chuyển ra sao → CPU &amp; RAM cấp phát thế nào → V8 thông dịch &amp; JIT optimize ra sao → Event Loop phối hợp microtasks &amp; render → Browser biến HTML/CSS thành pixel → Phòng thủ bảo mật đa lớp</em>.
+    <br><br>
+    Mỗi module đều có <strong>Góc phỏng vấn thực chiến</strong> với câu hỏi kinh điển kèm Elevator Pitch 60 giây và bài tập code kiểm chứng trên sân tập <code>core-practice</code>.
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" style="width: 13.3%"></div></div>
+    <div class="progress-label">4 / 30 bài đã soạn · Đã có sân tập &amp; nền tảng vững về OS / V8 / Event Loop</div>
+  </div>
+
+  <!-- ===== MODULE 0 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 0</span></div>
+    <h2>Setup &amp; Sân Tập (Environment &amp; Labs)</h2>
+    <p class="module-why">Chuẩn bị sẵn sàng bộ công cụ thực hành Node.js/Vitest &amp; DevTools để tự thử nghiệm code trong suốt lộ trình.</p>
+    <ul class="lessons-list">
+      <li>
+        <a href="0000-setup-moi-truong-san-tap.html">
+          <div class="lesson-row-top">
+            <span class="badge done">Bài 00</span>
+            <strong>Dựng môi trường sân tập core-practice</strong>
+            <span class="lcount">✓ sẵn sàng</span>
+          </div>
+          <span class="lesson-desc">Khởi tạo Node.js ESM + Vitest runner chạy test tự động, kiểm tra cấu hình máy thật.</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ===== MODULE 1 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 1</span></div>
+    <h2>Mạng Máy Tính &amp; Giao Thức Web (Networking, Protocols &amp; Transport)</h2>
+    <p class="module-why">Hiểu bản chất cách dữ liệu di chuyển trên Internet, các tầng giao thức kết nối và tối ưu truyền tải dữ liệu Client-Server.</p>
+    <ul class="lessons-list">
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 01</span>
+            <strong>DNS Resolution &amp; TCP/IP 3-Way Handshake</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Cơ chế cache DNS 4 tầng (Browser, OS, Router, ISP Resolver), Recursive vs Authoritative NS, cơ chế bắt tay SYN → SYN-ACK → ACK và TCP Slow Start.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 02</span>
+            <strong>HTTPS &amp; TLS Handshake (Asymmetric vs Symmetric, Certificate &amp; CA)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Mã hóa bất đối xứng để trao đổi session key đối xứng, Chain of Trust, CA, và TLS 1.3 1-RTT Handshake.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 03</span>
+            <strong>HTTP Evolution: HTTP/1.1 vs HTTP/2 vs HTTP/3 (QUIC)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">HOL Blocking ở HTTP/1.1, Multiplexing &amp; HPACK ở HTTP/2, và QUIC trên nền UDP giải quyết HOL Blocking tầng TCP ở HTTP/3.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 04</span>
+            <strong>RESTful API Design &amp; HTTP Semantics cho Frontend</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">HTTP Methods (GET, POST, PUT, PATCH, DELETE), tính Idempotency, ý nghĩa status codes 2xx/3xx/4xx/5xx và chuẩn hóa error payload.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 05</span>
+            <strong>Realtime Protocols: WebSocket vs Server-Sent Events (SSE) vs Polling</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">So sánh Short-polling, Long-polling, SSE (1 chiều server-to-client qua HTTP) và WebSocket (Full-duplex TCP song công).</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 06</span>
+            <strong>Web Caching Internals: Cache-Control, ETag vs Last-Modified &amp; 304</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Phân biệt max-age, no-cache vs no-store, stale-while-revalidate, cơ chế conditional requests với If-None-Match (ETag).</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 07</span>
+            <strong>Same-Origin Policy (SOP) &amp; CORS: Simple vs Preflight OPTIONS Requests</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Định nghĩa Origin (Protocol + Host + Port), vì sao browser chặn cross-origin, khi nào kích hoạt Preflight OPTIONS request và cách cấu hình server headers.</span>
+        </span>
+      </li>
+    </ul>
+
+    <!-- Câu hỏi thực tế Module 1 -->
+    <div class="real-q">
+      <div class="rq-title">🎯 Câu hỏi phỏng vấn thực tế — Module 1</div>
+      <ol>
+        <li>
+          <strong>Khi bạn gõ URL <code>https://google.com</code> và nhấn Enter, chuyện gì xảy ra dưới góc nhìn mạng?</strong>
+          <span class="hint">→ Trả lời theo luồng: DNS Cache lookup (Browser → OS → Router → ISP Resolver) → TCP 3-Way Handshake → TLS Handshake → HTTP Request/Response.</span>
+        </li>
+        <li>
+          <strong>Tại sao HTTP/2 nhanh hơn HTTP/1.1? HTTP/2 đã giải quyết triệt để HOL Blocking chưa?</strong>
+          <span class="hint">→ HTTP/2 dùng Multiplexing truyền nhiều streams trên 1 TCP connection. Giải quyết HOL ở tầng ứng dụng, nhưng vẫn bị HOL ở tầng TCP khi rớt packet (cần HTTP/3 + QUIC).</span>
+        </li>
+        <li>
+          <strong>PUT và PATCH khác nhau như thế nào? Phương thức nào có tính Idempotent?</strong>
+          <span class="hint">→ PUT: thay thế toàn bộ tài nguyên (Idempotent). PATCH: cập nhật một phần thuộc tính (thường non-idempotent).</span>
+        </li>
+        <li>
+          <strong>Một website thông báo chứng khoán nhảy giá liên tục nên dùng WebSocket hay SSE? Còn notification bell thì sao?</strong>
+          <span class="hint">→ Bảng giá hoặc chat 2 chiều: WebSocket. Notification bell chỉ nhận tin từ server: SSE tiết kiệm tài nguyên, tự reconnect native.</span>
+        </li>
+        <li>
+          <strong>Lỗi CORS xảy ra ở phía client hay server? Ai là người chịu trách nhiệm fix?</strong>
+          <span class="hint">→ Browser chặn vì chính sách SOP; Server là bên cấp phép qua headers <code>Access-Control-Allow-Origin</code>.</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== MODULE 2 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 2</span></div>
+    <h2>Hệ Điều Hành, JS Engine &amp; Quản Lý Bộ Nhớ (OS &amp; V8 Internals)</h2>
+    <p class="module-why">Nắm vững cách hệ điều hành phân bổ tài nguyên và cách V8 Engine cấp phát, tối ưu hóa và dọn rác bộ nhớ.</p>
+    <ul class="lessons-list">
+      <li>
+        <a href="0007-os-process-thread.html">
+          <div class="lesson-row-top">
+            <span class="badge now">Bài 08</span>
+            <strong>OS Foundations: Process vs Thread, Context Switching &amp; Concurrency</strong>
+            <span class="lcount">✓ sẵn sàng</span>
+          </div>
+          <span class="lesson-desc">Bộ nhớ độc lập vs chia sẻ, chi phí Context Switching, Race condition, và lý do JS chọn single-thread kết hợp Event Loop.</span>
+        </a>
+      </li>
+      <li>
+        <a href="0008-v8-engine-gc.html">
+          <div class="lesson-row-top">
+            <span class="badge now">Bài 09</span>
+            <strong>V8 Engine Internals: AST Parser, Ignition &amp; TurboFan JIT Compiler</strong>
+            <span class="lcount">✓ sẵn sàng</span>
+          </div>
+          <span class="lesson-desc">Ignition (Bytecode interpreter), TurboFan (JIT compiler), Inline Caching, Hidden Classes, Type assumptions và cơ chế Deoptimization.</span>
+        </a>
+      </li>
+      <li>
+        <a href="0008-v8-engine-gc.html">
+          <div class="lesson-row-top">
+            <span class="badge now">Bài 10</span>
+            <strong>V8 Garbage Collection: Generational GC &amp; Bắt bệnh Memory Leaks</strong>
+            <span class="lcount">✓ sẵn sàng</span>
+          </div>
+          <span class="lesson-desc">Stack vs Heap, Scavenger (Young Gen), Mark-Sweep-Compact (Old Gen), GC Roots &amp; Reachability, và 4 pattern gây Memory Leaks trong SPA.</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="real-q">
+      <div class="rq-title">🎯 Câu hỏi phỏng vấn thực tế — Module 2</div>
+      <ol>
+        <li>
+          <strong>JavaScript là single-threaded. Vậy tại sao nó không bị block khi xử lý hàng ngàn network requests cùng lúc?</strong>
+          <span class="hint">→ JS Engine thực thi code single-thread trên Call Stack, nhưng I/O và timers được ủy thác cho Web APIs / libuv ở background thread pool, trả kết quả qua Callback Queue.</span>
+        </li>
+        <li>
+          <strong>Tại sao Google Chrome mở nhiều tab lại ngốn rất nhiều RAM? Đây là lỗi hay tính năng?</strong>
+          <span class="hint">→ Tính năng Multi-Process &amp; Site Isolation: mỗi tab chạy Renderer Process riêng để cô lập crash và phòng ngừa lỗi bảo mật Spectre, đổi lại tốn RAM hơn.</span>
+        </li>
+        <li>
+          <strong>Bộ dọn rác (GC) của V8 hoạt động như thế nào? Thế nào là Young vs Old Generation?</strong>
+          <span class="hint">→ Giả thuyết Weak Generational: object mới tạo nằm ở Young Gen được dọn nhanh bằng Scavenger; sống sót qua 2 chu kỳ sẽ lên Old Gen và dọn bằng Mark-Sweep-Compact.</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== MODULE 3 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 3</span></div>
+    <h2>JavaScript Core, Ngữ Nghĩa Sâu &amp; Bất Đồng Bộ (JS Runtime &amp; Async Model)</h2>
+    <p class="module-why">Làm chủ Execution Context, Scope Chain, Closures, Prototype, `this` và luồng bất đồng bộ của Event Loop.</p>
+    <ul class="lessons-list">
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 11</span>
+            <strong>JS Deep Core: Execution Context, Scope Chain, Hoisting &amp; Closures</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Creation Phase vs Execution Phase, Lexical Environment, Temporal Dead Zone (TDZ) của let/const, và cơ chế giữ biến của Closures.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 12</span>
+            <strong>OOP trong JS: Prototype Chain, <code>__proto__</code> vs <code>prototype</code> &amp; 5 quy tắc <code>this</code> Binding</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Kế thừa nguyên mẫu (Prototypal Inheritance), cơ chế tìm kiếm thuộc tính qua Prototype Chain, và phân biệt Default, Implicit, Explicit (call/apply/bind), new, Arrow function `this`.</span>
+        </span>
+      </li>
+      <li>
+        <a href="0009-event-loop.html">
+          <div class="lesson-row-top">
+            <span class="badge now">Bài 13</span>
+            <strong>Event Loop Sâu: Call Stack, Microtasks, Macrotasks &amp; rAF</strong>
+            <span class="lcount">✓ sẵn sàng</span>
+          </div>
+          <span class="lesson-desc">Thứ tự ưu tiên: Call Stack → Drain toàn bộ Microtasks (Promise, queueMicrotask) → Render (rAF) → 1 Macrotask (setTimeout, I/O).</span>
+        </a>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 14</span>
+            <strong>Async Execution: Promise Internals, Async/Await Desugaring &amp; Combinators</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Promise State Machine (Pending/Fulfilled/Rejected), Async/Await desugaring qua Generator/Coroutines, so sánh Promise.all vs allSettled vs race vs any.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 15</span>
+            <strong>Modern JS Features &amp; Cấu Trúc Dữ Liệu: ES6+, Map/Set vs WeakMap/WeakSet</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Destructuring, Rest/Spread, Symbols, Iterators &amp; Generators, phân biệt Map vs Object và tại sao WeakMap/WeakSet giúp chống memory leak.</span>
+        </span>
+      </li>
+    </ul>
+
+    <div class="real-q">
+      <div class="rq-title">🎯 Câu hỏi phỏng vấn thực tế — Module 3</div>
+      <ol>
+        <li>
+          <strong>Closure là gì? Cho một ví dụ thực tế sử dụng Closure và một ví dụ Closure gây memory leak?</strong>
+          <span class="hint">→ Closure là hàm ghi nhớ Lexical Scope nơi nó được tạo ra ngay cả khi hàm cha đã kết thúc thực thi. Dùng trong data privacy / memoization; gây leak khi giữ object dung lượng lớn không cần thiết.</span>
+        </li>
+        <li>
+          <strong>Giải thích cách từ khóa <code>this</code> được xác định trong JavaScript? Arrow function khác hàm thường thế nào?</strong>
+          <span class="hint">→ <code>this</code> xác định tại runtime dựa trên CALL-SITE (cách hàm được gọi). Arrow function không có <code>this</code> riêng, nó kế thừa <code>this</code> tĩnh từ lexical scope bên ngoài.</span>
+        </li>
+        <li>
+          <strong>Đoạn code sau in ra thứ tự nào?</strong>
+          <pre style="margin:6px 0; padding:8px 12px; background:#11141d; border-radius:6px; font-family:var(--mono); font-size:13px;"><code>console.log('1');
+setTimeout(() => console.log('2'), 0);
+Promise.resolve().then(() => console.log('3'));
+queueMicrotask(() => console.log('4'));
+console.log('5');</code></pre>
+          <span class="hint">→ Thứ tự: 1 → 5 → 3 → 4 → 2 (Sync trước, Microtasks drain hết, Macrotask sau).</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== MODULE 4 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 4</span></div>
+    <h2>Kiến Trúc Trình Duyệt &amp; Critical Rendering Path (Browser Pipeline)</h2>
+    <p class="module-why">Giải mã kiến trúc đa tiến trình và quy trình biến đổi HTML/CSS/JS thành các pixel mượt mà 60fps trên màn hình.</p>
+    <ul class="lessons-list">
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 16</span>
+            <strong>Browser Multi-Process Architecture &amp; Renderer IPC</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Browser Process, Renderer Process, GPU Process, Network Service và giao tiếp IPC qua Mojo framework.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 17</span>
+            <strong>HTML/CSS Parsing, DOM/CSSOM Construction &amp; Script Loading (async/defer)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Tokenization, Tree Construction, CSS render-blocking, JS parser-blocking, Preload Scanner và cơ chế <code>async</code> vs <code>defer</code>.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 18</span>
+            <strong>Layout, Paint, Composite &amp; Kỹ thuật tối ưu Reflow vs Repaint (60fps)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Render Tree, Layout (Reflow), Paint (Repaint), Composite layers trên GPU, Layout Thrashing và tối ưu 60fps với <code>transform</code>, <code>opacity</code>, <code>will-change</code>.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 19</span>
+            <strong>DOM Events Internals: Propagation (Capture/Bubble), Delegation &amp; Passive Listeners</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">3 giai đoạn (Capturing → Target → Bubbling), Event Delegation tối ưu bộ nhớ, <code>stopPropagation</code> vs <code>preventDefault</code>, và passive scroll listeners.</span>
+        </span>
+      </li>
+    </ul>
+
+    <div class="real-q">
+      <div class="rq-title">🎯 Câu hỏi phỏng vấn thực tế — Module 4</div>
+      <ol>
+        <li>
+          <strong>Khác biệt giữa <code>&lt;script&gt;</code> thường, <code>async</code> và <code>defer</code>?</strong>
+          <span class="hint">→ Thường: block HTML parsing. <code>async</code>: tải song song, chạy ngay khi xong (không giữ thứ tự). <code>defer</code>: tải song song, chạy sau khi DOM parse xong (giữ đúng thứ tự file).</span>
+        </li>
+        <li>
+          <strong>Layout Thrashing (Forced Synchronous Layout) là gì và làm sao để phòng tránh?</strong>
+          <span class="hint">→ Xảy ra khi đọc thuộc tính layout (như <code>offsetHeight</code>) ngay sau khi ghi style trong vòng lặp. Khắc phục: gom tất cả thao tác đọc trước, ghi sau (Read-first, Write-later).</span>
+        </li>
+        <li>
+          <strong>Event Delegation là gì? Tại sao nên dùng khi render danh sách động 10,000 items?</strong>
+          <span class="hint">→ Gắn 1 listener duy nhất lên thẻ cha dựa vào Event Bubbling thay vì gắn 10,000 listener lên từng phần tử con, giảm đáng kể Memory Heap và chi phí khởi tạo.</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== MODULE 5 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 5</span></div>
+    <h2>Lưu Trữ Trình Duyệt &amp; Bảo Mật Web (Storage, Auth &amp; Web Security)</h2>
+    <p class="module-why">Làm chủ các cơ chế lưu trữ client-side và nhận diện, phòng chống các lỗ hổng bảo mật Web phổ biến.</p>
+    <ul class="lessons-list">
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 20</span>
+            <strong>Browser Storage: Cookies (HttpOnly, SameSite) vs Web Storage vs IndexedDB</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Dung lượng, vòng đời, bảo mật: Cookie (gửi theo request), localStorage (5-10MB synchronous), sessionStorage, IndexedDB (async NoSQL).</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 21</span>
+            <strong>Web Authentication: Session Cookie vs JWT (Access/Refresh Token Rotation)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Cơ chế Session-based vs Token-based, Silent Token Refresh, phân tích vị trí lưu trữ an toàn: HttpOnly Cookie vs In-Memory + Refresh Token.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 22</span>
+            <strong>Cross-Site Scripting (XSS) &amp; Kỹ thuật phòng chống (CSP, Sanitization, DOMPurify)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Phân loại Stored, Reflected, DOM XSS; nguy cơ đánh cắp token/session; phòng thủ đa lớp với Contextual Encoding, Content Security Policy (CSP) và DOMPurify.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 23</span>
+            <strong>CSRF, Clickjacking &amp; Security Response Headers (HSTS, X-Frame-Options, SameSite)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Cơ chế mượn danh Cookie của CSRF; phòng chống bằng <code>SameSite=Lax/Strict</code>, Anti-CSRF Token; phòng thủ Clickjacking với <code>X-Frame-Options</code> &amp; CSP <code>frame-ancestors</code>.</span>
+        </span>
+      </li>
+    </ul>
+
+    <div class="real-q">
+      <div class="rq-title">🎯 Câu hỏi phỏng vấn thực tế — Module 5</div>
+      <ol>
+        <li>
+          <strong>JWT Auth Token nên lưu ở đâu an toàn nhất: <code>localStorage</code> hay <code>HttpOnly Cookie</code>?</strong>
+          <span class="hint">→ <code>localStorage</code> dễ bị XSS đọc mất. <code>HttpOnly Cookie</code> chống được XSS đọc token nhưng có nguy cơ CSRF (cần kết hợp <code>SameSite=Lax</code> hoặc Anti-CSRF token).</span>
+        </li>
+        <li>
+          <strong>XSS khác CSRF như thế nào?</strong>
+          <span class="hint">→ XSS: hacker tiêm và chạy mã JS trên trình duyệt người dùng (lấy cắp dữ liệu). CSRF: hacker lừa trình duyệt gửi request có kèm cookie hợp lệ mà người dùng không hề biết.</span>
+        </li>
+        <li>
+          <strong>Content Security Policy (CSP) là gì và làm sao để cấu hình chống XSS hiệu quả?</strong>
+          <span class="hint">→ CSP là HTTP Header do server trả về chỉ định rõ nguồn tài nguyên (script, style, image) được phép tải và cấm thực thi <code>eval()</code> hay inline scripts nguy hiểm.</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== MODULE 6 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 6</span></div>
+    <h2>Tối Ưu Hiệu Năng &amp; Build Tools (Performance &amp; Bundling)</h2>
+    <p class="module-why">Đo lường các chỉ số sống còn của trang web và làm chủ kỹ thuật tối ưu bundle, tải tài nguyên.</p>
+    <ul class="lessons-list">
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 24</span>
+            <strong>Core Web Vitals (LCP, INP, CLS) &amp; Đo lường với Chrome DevTools</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Đo lường LCP (&lt;2.5s), INP (&lt;200ms), CLS (&lt;0.1); sử dụng Lighthouse và Performance Tab để tìm bottleneck.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 25</span>
+            <strong>Asset Optimization &amp; Resource Hints (dns-prefetch, preconnect, preload, prefetch)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Tối ưu hình ảnh (WebP/AVIF, responsive images), Font loading (FOIT/FOUT, font-display: swap), và Resource Hints ưu tiên mạng.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 26</span>
+            <strong>Bundling Fundamentals: Tree Shaking, Dynamic import() &amp; Code Splitting</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Cơ chế đóng gói Module (ESM static analysis), Tree shaking loại bỏ dead code, Dynamic <code>import()</code> và phân tách Route-based / Component-based chunking.</span>
+        </span>
+      </li>
+    </ul>
+
+    <div class="real-q">
+      <div class="rq-title">🎯 Câu hỏi phỏng vấn thực tế — Module 6</div>
+      <ol>
+        <li>
+          <strong>3 chỉ số Core Web Vitals của Google là gì? Chỉ số INP mới thay thế cho FID như thế nào?</strong>
+          <span class="hint">→ LCP (tốc độ tải nội dung chính), INP (độ phản hồi tương tác xuyên suốt phiên dùng, đo worst-case latency thay vì chỉ first interaction như FID), CLS (độ ổn định thị giác).</span>
+        </li>
+        <li>
+          <strong>Phân biệt <code>preload</code> vs <code>prefetch</code> trong HTML?</strong>
+          <span class="hint">→ <code>preload</code>: tải ngay tài nguyên bắt buộc cho trang hiện tại với độ ưu tiên cao. <code>prefetch</code>: tải trước tài nguyên có thể dùng cho trang tiếp theo khi mạng rảnh rỗi.</span>
+        </li>
+        <li>
+          <strong>Tree Shaking hoạt động như thế nào? Tại sao CommonJS khó Tree Shake hơn ES Modules?</strong>
+          <span class="hint">→ Tree Shaking dựa vào cú pháp tĩnh (Static Analysis) của ESM (<code>import/export</code>) để xác định code thừa lúc build time. CommonJS dùng dynamic <code>require()</code> nên bundler không thể đoán trước lúc runtime.</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== MODULE 7 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 7</span></div>
+    <h2>Git Internals &amp; Quy Trình Kỹ Sư Thực Chiến (Git &amp; Collaboration)</h2>
+    <p class="module-why">Làm chủ cấu trúc dữ liệu bên trong của Git và các kỹ thuật xử lý conflict, rebase mượt mà trong team.</p>
+    <ul class="lessons-list">
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 27</span>
+            <strong>Git Internals: Object Store (Blob, Tree, Commit) &amp; Directed Acyclic Graph (DAG)</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Content-Addressable Object Store (SHA-1/SHA-256), Snapshot vs Delta, Branch/HEAD pointers và cơ chế lưu trữ bất biến.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 28</span>
+            <strong>Git Workflows: Merge vs Rebase, Cherry-Pick, Bisect, Stash &amp; Conventional Commits</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Sự khác nhau bản chất giữa Fast-Forward, 3-Way Merge và Rebase; kỹ thuật giải quyết Conflict; tìm bug tự động với `git bisect`; chuẩn Conventional Commits.</span>
+        </span>
+      </li>
+    </ul>
+
+    <div class="real-q">
+      <div class="rq-title">🎯 Câu hỏi phỏng vấn thực tế — Module 7</div>
+      <ol>
+        <li>
+          <strong><code>git rebase</code> khác <code>git merge</code> như thế nào? Khi nào KHÔNG được rebase?</strong>
+          <span class="hint">→ <code>merge</code> tạo commit gộp và giữ nguyên lịch sử phân nhánh. <code>rebase</code> tua lại và viết lại lịch sử commit lên đỉnh nhánh khác (tạo linear log). Quy tắc vàng: KHÔNG rebase trên branch public/shared.</span>
+        </li>
+        <li>
+          <strong>Bên trong thư mục <code>.git</code>, đối tượng Blob, Tree và Commit chứa những thông tin gì?</strong>
+          <span class="hint">→ Blob: chỉ chứa nội dung nhị phân của file. Tree: chứa danh sách filename, permissions và SHA-1 của Blobs/sub-Trees (thư mục). Commit: chứa metadata (author, committer, message, timestamp, parent SHA) trỏ tới root Tree.</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ===== MODULE 8 ===== -->
+  <div class="module">
+    <div class="module-head"><span class="module-num">Module 8</span></div>
+    <h2>Tổng Ôn Phản Xạ &amp; Mock Interview (Interview Mastery)</h2>
+    <p class="module-why">Tổng hợp tư duy hệ thống và luyện phản xạ trả lời 50 câu hỏi phỏng vấn IT Core kinh điển cho Frontend Intern.</p>
+    <ul class="lessons-list">
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 29</span>
+            <strong>Full-Trace System Thinking: "Gõ URL google.com và nhấn Enter, chuyện gì xảy ra?"</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Phân tích luồng chuyển tiếp toàn diện từ Bàn phím → OS IPC → DNS Cache → TCP/TLS Handshake → HTTP/2 Request → Server Processing → Response Parsing → CRP (DOM/CSSOM/Layout/Paint/Composite) → JS Execution.</span>
+        </span>
+      </li>
+      <li>
+        <span class="soon">
+          <div class="lesson-row-top">
+            <span class="badge soon">Bài 30</span>
+            <strong>Mock Interview &amp; Tổng Ôn 50 Câu Hỏi IT Core / Frontend Intern Kinh Điển</strong>
+            <span class="lcount">sắp tới</span>
+          </div>
+          <span class="lesson-desc">Bộ 50 câu hỏi cốt lõi kèm rubric đánh giá phản xạ 5 trục, bài thi thử phỏng vấn trực tiếp và mẹo xử lý khi gặp câu hỏi chưa biết.</span>
+        </span>
+      </li>
+    </ul>
+
+    <div class="real-q">
+      <div class="rq-title">🎯 Tiêu chuẩn đỗ Technical Interview vị trí Frontend Intern</div>
+      <ol>
+        <li><strong>Phản xạ 60 giây:</strong> Trình bày định nghĩa và luồng hoạt động chính xác trong vòng 1 phút mà không bị ngập ngừng.</li>
+        <li><strong>Tư duy Trade-offs:</strong> Luôn trả lời được câu hỏi <em>"Tại sao chọn cách A thay vì cách B? Ưu và nhược điểm là gì?"</em>.</li>
+        <li><strong>Đọc hiểu Code Async:</strong> Nhìn vào đoạn code lồng Promise/setTimeout/async-await và đọc vanh vách thứ tự log mà không cần bấm chạy.</li>
+        <li><strong>Kỹ năng DevTools:</strong> Biết rõ mở tab nào trên Chrome DevTools (Network, Performance, Memory) khi được yêu cầu debug một sự cố thực tế.</li>
+        <li><strong>Hiểu cơ chế phòng thủ:</strong> Không chỉ biết tên lỗ hổng (XSS, CSRF, CORS) mà viết được code ngăn chặn chuẩn best practices.</li>
+      </ol>
+    </div>
+  </div>
+
+  <p class="try-it" style="text-align:center; margin-top:40px;">
+    📌 Lộ trình <strong>co giãn</strong>: nắm nhanh thì gộp bài, vấp thì tách thêm bài luyện.<br>
+    Muốn thêm/bớt/đổi thứ tự — cứ nói với tôi bất cứ lúc nào!
+  </p>
+</div>
+</body>
+</html>

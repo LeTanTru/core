@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Bài 09 · Event Loop Sâu: Call Stack, Microtasks, Macrotasks & rAF
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="lesson.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <span class="lesson-tag">Module 3 · Bài 09</span>
+      <h1>Event Loop Sâu: Call Stack, Microtasks, Macrotasks &amp; rAF</h1>
+      <p class="subtitle">
+        Hiểu chính xác thứ tự thực thi của Promise, setTimeout,
+        requestAnimationFrame trong Event Loop.
+      </p>
+      <p class="meta-line">
+        ⏱ ~25 phút · 🎯 Mục tiêu: Predict đúng output của bất kỳ đoạn code async
+        nào; giải thích cơ chế Event Loop khi phỏng vấn.
+      </p>
+
+      <div class="callout bridge">
+        <div class="ct">🌉 Bắc cầu từ cái bạn đã biết</div>
+        <p>
+          Bài trước bạn đã hiểu V8 Call Stack (LIFO) và JavaScript
+          single-thread. Bây giờ câu hỏi là:
+          <em>nếu chỉ có 1 thread, làm sao JS xử lý nhiều việc?</em> Event Loop
+          như <strong>nhân viên bưu điện</strong> cần mẫn: xử lý từng công việc
+          một (đảm bảo không race), nhưng ưu tiên
+          <strong>thư nhanh (microtasks)</strong> trước khi lấy
+          <strong>thư thường (macrotasks)</strong> mới từ hộp thư.
+        </p>
+      </div>
+
+      <!-- 1. CALL STACK -->
+      <h2>1. Call Stack — LIFO, Stack Overflow</h2>
+      <p>
+        Call Stack là nơi V8 theo dõi function nào đang chạy. Mỗi function call
+        tạo một <strong>stack frame</strong> (lưu local variables + return
+        address). Function return → frame bị pop.
+      </p>
+
+      <div class="code-block">
+        <div class="code-label">JavaScript · Call Stack minh họa</div>
+        <pre><code><span class="kw">function</span> <span class="fn">a</span>() {
+  <span class="fn">b</span>(); <span class="cmt">// gọi b → push frame b lên stack</span>
+}
+<span class="kw">function</span> <span class="fn">b</span>() {
+  <span class="fn">c</span>(); <span class="cmt">// gọi c → push frame c lên stack</span>
+}
+<span class="kw">function</span> <span class="fn">c</span>() {
+  console.<span class="fn">log</span>(<span class="str">'inside c'</span>); <span class="cmt">// Stack: [a, b, c] — c trên đỉnh</span>
+  <span class="cmt">// return → pop c, trở về b</span>
+}
+<span class="fn">a</span>(); <span class="cmt">// Stack: [a] → [a,b] → [a,b,c] → [a,b] → [a] → []</span>
+
+<span class="cmt">// Stack Overflow — đệ quy vô hạn</span>
+<span class="kw">function</span> <span class="fn">infinite</span>() {
+  <span class="kw">return</span> <span class="fn">infinite</span>(); <span class="cmt">// push mãi → hết stack space</span>
+}
+<span class="cmt">// → Uncaught RangeError: Maximum call stack size exceeded</span></code></pre>
+      </div>
+
+      <div class="callout why">
+        <div class="ct">
+          💡 Tại sao Call Stack phải rỗng trước khi Event Loop chạy callback?
+        </div>
+        <p>
+          JavaScript là single-thread. Event Loop chỉ có thể đẩy callback vào
+          execution khi Call Stack <strong>hoàn toàn rỗng</strong>. Nếu stack
+          đang bận (code JS đang chạy), callback phải đợi trong queue. Điều này
+          giải thích vì sao <code>setTimeout(fn, 0)</code> không chạy "ngay lập
+          tức" — nó phải đợi stack rỗng.
+        </p>
+      </div>
+
+      <!-- 2. WEB APIs + MACROTASK QUEUE -->
+      <h2>2. Web APIs &amp; Macrotask Queue</h2>
+      <p>
+        Web APIs (<code>setTimeout</code>, <code>setInterval</code>,
+        <code>fetch</code>, DOM events) không thuộc V8 — chúng do
+        <strong>browser (hoặc Node.js libuv)</strong> cung cấp. Khi callback của
+        chúng sẵn sàng, chúng được đẩy vào <strong>Macrotask Queue</strong> (còn
+        gọi là Task Queue / Callback Queue).
+      </p>
+
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Nguồn</th>
+            <th>Loại</th>
+            <th>Queue</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>setTimeout</code> / <code>setInterval</code></td>
+            <td>Timer</td>
+            <td>Macrotask</td>
+          </tr>
+          <tr>
+            <td>DOM events (click, input…)</td>
+            <td>UI event</td>
+            <td>Macrotask</td>
+          </tr>
+          <tr>
+            <td>XHR / fetch callback</td>
+            <td>I/O</td>
+            <td>Macrotask</td>
+          </tr>
+          <tr>
+            <td><code>MessageChannel.postMessage</code></td>
+            <td>Messaging</td>
+            <td>Macrotask</td>
+          </tr>
+          <tr>
+            <td><code>setImmediate</code> (Node.js)</td>
+            <td>Timer</td>
+            <td>Check phase (giữa macrotasks)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 3. MICROTASK QUEUE -->
+      <h2>3. Microtask Queue — Ưu tiên cao hơn Macrotask</h2>
+      <p>
+        Microtask Queue được xử lý <strong>sau mỗi macrotask</strong> và
+        <strong>trước khi Event Loop lấy macrotask tiếp theo</strong>. Toàn bộ
+        Microtask Queue phải rỗng mới chuyển sang macrotask tiếp theo.
+      </p>
+
+      <table class="data">
+        <thead>
+          <tr>
+            <th>Nguồn Microtask</th>
+            <th>Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Promise.then() / .catch() / .finally()</code></td>
+            <td>Phổ biến nhất</td>
+          </tr>
+          <tr>
+            <td><code>queueMicrotask(fn)</code></td>
+            <td>Thêm microtask thủ công (WHATWG spec)</td>
+          </tr>
+          <tr>
+            <td><code>MutationObserver</code></td>
+            <td>Theo dõi DOM changes</td>
+          </tr>
+          <tr>
+            <td><code>async/await</code> (bên dưới là Promise)</td>
+            <td>await tạo microtask</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 4. EVENT LOOP ALGORITHM -->
+      <h2>4. Event Loop Algorithm — Vòng lặp chính xác</h2>
+
+      <div class="code-block">
+        <div class="code-label">Pseudo-code · Event Loop algorithm</div>
+        <pre><code><span class="cmt">// Event Loop — chạy liên tục (simplified)</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+  <span class="cmt">// BƯỚC 1: Lấy MỘT macrotask từ Macrotask Queue (nếu có)</span>
+  <span class="kw">const</span> task = macrotaskQueue.<span class="fn">dequeue</span>();
+  <span class="kw">if</span> (task) {
+    <span class="fn">execute</span>(task); <span class="cmt">// chạy task → Call Stack</span>
+  }
+
+  <span class="cmt">// BƯỚC 2: Drain TOÀN BỘ Microtask Queue (quan trọng!)</span>
+  <span class="kw">while</span> (microtaskQueue.length > <span class="num">0</span>) {
+    <span class="kw">const</span> microtask = microtaskQueue.<span class="fn">dequeue</span>();
+    <span class="fn">execute</span>(microtask); <span class="cmt">// microtask có thể thêm microtask mới → vẫn drain hết</span>
+  }
+
+  <span class="cmt">// BƯỚC 3: Render (nếu cần — browser only)</span>
+  <span class="kw">if</span> (renderNeeded &amp;&amp; timeToRender) {
+    <span class="fn">runAnimationFrameCallbacks</span>(); <span class="cmt">// requestAnimationFrame callbacks</span>
+    <span class="fn">render</span>();                       <span class="cmt">// Layout → Paint → Composite</span>
+  }
+
+  <span class="cmt">// Lặp lại — lấy macrotask tiếp theo</span>
+}</code></pre>
+      </div>
+
+      <div class="callout danger">
+        <div class="ct">
+          🚨 Microtask starvation — vòng lặp vô hạn trong microtask
+        </div>
+        <p>
+          Nếu microtask liên tục thêm microtask mới, Macrotask Queue và render
+          KHÔNG BAO GIỜ được thực thi — UI freeze hoàn toàn. Ví dụ:
+          <code>function loop() { Promise.resolve().then(loop); } loop();</code>
+          → tab treo ngay lập tức.
+        </p>
+      </div>
+
+      <!-- 5. rAF -->
+      <h2>5. requestAnimationFrame (rAF) — Trước Render, Sau Microtasks</h2>
+      <p>
+        <code>requestAnimationFrame(fn)</code> — callback <code>fn</code> được
+        gọi ngay trước browser render frame (~60fps = mỗi 16.7ms). rAF KHÔNG
+        phải macrotask cũng không phải microtask — nó là bước riêng biệt trong
+        vòng lặp browser.
+      </p>
+
+      <div class="callout why">
+        <div class="ct">💡 Dùng rAF đúng chỗ</div>
+        <p>
+          ✅ Dùng rAF cho animation, DOM update cần synchronized với frame rate.
+          <br />❌ Không dùng setTimeout(fn, 16) thay rAF — timer không đảm bảo
+          đúng frame boundary, có thể tearing.
+        </p>
+        <p>
+          Trong <strong>Node.js</strong> không có rAF (không có browser
+          rendering). Thay vào đó Node.js có <code>process.nextTick()</code> —
+          thực ra chạy <em>trước</em> cả Microtask Queue (đặc thù của Node.js,
+          không có trong browser).
+        </p>
+      </div>
+
+      <!-- 6. DIAGRAM -->
+      <h2>6. Diagram Thứ Tự Execution</h2>
+
+      <div class="code-block">
+        <div class="code-label">
+          Thứ tự đầy đủ trong một "tick" của Event Loop (browser)
+        </div>
+        <pre><code><span class="cmt">┌─────────────────────────────────────────────────────────┐</span>
+<span class="cmt">│                 MỘT VÒNG EVENT LOOP                     │</span>
+<span class="cmt">├─────────────────────────────────────────────────────────┤</span>
+<span class="cmt">│                                                         │</span>
+<span class="cmt">│  1. MACROTASK (1 cái)                                   │</span>
+<span class="cmt">│     └─ setTimeout callback / click handler / script    │</span>
+<span class="cmt">│                                                         │</span>
+<span class="cmt">│  2. MICROTASKS (drain hết)          ← ƯU TIÊN CAO      │</span>
+<span class="cmt">│     ├─ Promise.then callbacks                          │</span>
+<span class="cmt">│     ├─ queueMicrotask callbacks                        │</span>
+<span class="cmt">│     └─ MutationObserver callbacks                      │</span>
+<span class="cmt">│                                                         │</span>
+<span class="cmt">│  3. RENDER (nếu đến frame boundary ~16.7ms)             │</span>
+<span class="cmt">│     ├─ requestAnimationFrame callbacks                 │</span>
+<span class="cmt">│     ├─ IntersectionObserver callbacks                  │</span>
+<span class="cmt">│     └─ Layout → Paint → Composite                      │</span>
+<span class="cmt">│                                                         │</span>
+<span class="cmt">│  4. Quay lại bước 1 (macrotask tiếp theo)               │</span>
+<span class="cmt">│                                                         │</span>
+<span class="cmt">└─────────────────────────────────────────────────────────┘</span></code></pre>
+      </div>
+
+      <!-- 7. CODE DEMO VITEST -->
+      <h2>7. Code Demo Vitest: Predict Output</h2>
+
+      <div class="code-block">
+        <div class="code-label">
+          JavaScript · Thứ tự execution — thử predict trước khi xem đáp án
+        </div>
+        <pre><code>console.<span class="fn">log</span>(<span class="str">'1'</span>); <span class="cmt">// synchronous → chạy ngay</span>
+
+<span class="fn">setTimeout</span>(() => {
+  console.<span class="fn">log</span>(<span class="str">'2'</span>); <span class="cmt">// macrotask → chạy SAU tất cả microtasks</span>
+}, <span class="num">0</span>);
+
+Promise.<span class="fn">resolve</span>().<span class="fn">then</span>(() => {
+  console.<span class="fn">log</span>(<span class="str">'3'</span>); <span class="cmt">// microtask → chạy TRƯỚC macrotask</span>
+  <span class="fn">queueMicrotask</span>(() => {
+    console.<span class="fn">log</span>(<span class="str">'4'</span>); <span class="cmt">// microtask từ trong microtask → drain tiếp theo</span>
+  });
+});
+
+<span class="fn">queueMicrotask</span>(() => {
+  console.<span class="fn">log</span>(<span class="str">'5'</span>); <span class="cmt">// microtask → chạy trước setTimeout</span>
+});
+
+console.<span class="fn">log</span>(<span class="str">'6'</span>); <span class="cmt">// synchronous → chạy ngay sau '1'</span>
+
+<span class="cmt">// OUTPUT: 1 → 6 → 3 → 5 → 4 → 2</span>
+<span class="cmt">// Giải thích:</span>
+<span class="cmt">// Sync: 1, 6 (call stack)</span>
+<span class="cmt">// Microtasks: 3 (Promise.then) → thêm '4' vào queue → 5 (queueMicrotask) → 4</span>
+<span class="cmt">// Macrotask: 2 (setTimeout)</span></code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-label">
+          Vitest · event-loop-order.test.js — kiểm tra thứ tự execution
+        </div>
+        <pre><code><span class="kw">import</span> { test, expect, vi } <span class="kw">from</span> <span class="str">'vitest'</span>;
+
+<span class="fn">test</span>(<span class="str">'microtask (Promise) chạy TRƯỚC macrotask (setTimeout)'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> log = [];
+
+  <span class="fn">setTimeout</span>(() => log.<span class="fn">push</span>(<span class="str">'macrotask'</span>), <span class="num">0</span>); <span class="cmt">// vào Macrotask Queue</span>
+
+  <span class="fn">Promise</span>.<span class="fn">resolve</span>().<span class="fn">then</span>(() => {
+    log.<span class="fn">push</span>(<span class="str">'microtask'</span>); <span class="cmt">// vào Microtask Queue</span>
+  });
+
+  <span class="cmt">// Đợi cả macrotask và microtask complete</span>
+  <span class="kw">await new</span> <span class="fn">Promise</span>(r => <span class="fn">setTimeout</span>(r, <span class="num">10</span>));
+
+  <span class="cmt">// Microtask phải chạy trước macrotask</span>
+  expect(log).<span class="fn">toEqual</span>([<span class="str">'microtask'</span>, <span class="str">'macrotask'</span>]); <span class="cmt">// ✅</span>
+});
+
+<span class="fn">test</span>(<span class="str">'queueMicrotask từ trong microtask được drain ngay trong cùng vòng'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> log = [];
+
+  <span class="fn">Promise</span>.<span class="fn">resolve</span>().<span class="fn">then</span>(() => {
+    log.<span class="fn">push</span>(<span class="str">'micro-1'</span>);
+    <span class="fn">queueMicrotask</span>(() => log.<span class="fn">push</span>(<span class="str">'micro-2'</span>)); <span class="cmt">// thêm vào queue trong khi drain</span>
+  });
+
+  <span class="fn">setTimeout</span>(() => log.<span class="fn">push</span>(<span class="str">'macro'</span>), <span class="num">0</span>);
+
+  <span class="kw">await new</span> <span class="fn">Promise</span>(r => <span class="fn">setTimeout</span>(r, <span class="num">10</span>));
+
+  <span class="cmt">// micro-2 được drain TRƯỚC macro, dù được thêm sau micro-1</span>
+  expect(log).<span class="fn">toEqual</span>([<span class="str">'micro-1'</span>, <span class="str">'micro-2'</span>, <span class="str">'macro'</span>]); <span class="cmt">// ✅</span>
+});
+
+<span class="fn">test</span>(<span class="str">'async/await desugars thành Promise microtask'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> log = [];
+
+  <span class="kw">async function</span> <span class="fn">asyncTask</span>() {
+    log.<span class="fn">push</span>(<span class="str">'before await'</span>); <span class="cmt">// sync — chạy ngay</span>
+    <span class="kw">await</span> Promise.<span class="fn">resolve</span>();  <span class="cmt">// yield — tạo microtask cho phần sau</span>
+    log.<span class="fn">push</span>(<span class="str">'after await'</span>);  <span class="cmt">// tiếp tục sau khi microtask queue drain</span>
+  }
+
+  <span class="fn">asyncTask</span>();              <span class="cmt">// bắt đầu task (không await ở đây)</span>
+  log.<span class="fn">push</span>(<span class="str">'sync after call'</span>); <span class="cmt">// sync — chạy trước 'after await'</span>
+
+  <span class="kw">await new</span> <span class="fn">Promise</span>(r => <span class="fn">setTimeout</span>(r, <span class="num">10</span>));
+
+  expect(log).<span class="fn">toEqual</span>([
+    <span class="str">'before await'</span>,  <span class="cmt">// sync trong asyncTask</span>
+    <span class="str">'sync after call'</span>, <span class="cmt">// sync ngoài asyncTask</span>
+    <span class="str">'after await'</span>,   <span class="cmt">// microtask resume</span>
+  ]); <span class="cmt">// ✅</span>
+});</code></pre>
+      </div>
+
+      <!-- PHỎNG VẤN & ÔN TẬP THỰC CHIẾN -->
+      <div class="callout warn">
+        <div class="ct">
+          🎯 Bộ câu hỏi thực tế ôn tập &amp; Phỏng vấn thực chiến
+        </div>
+        <ol style="margin: 8px 0 0; padding-left: 20px; line-height: 1.6">
+          <li style="margin-bottom: 12px">
+            <strong
+              >Câu hỏi 1 (Đọc Code Phản Xạ): Đoạn code sau in ra màn hình thứ tự
+              nào? Giải thích chi tiết luồng Event Loop:</strong
+            >
+            <div class="code-block" style="margin: 6px 0">
+              <pre><code>console.log('1');
+setTimeout(() => console.log('2'), 0);
+Promise.resolve().then(() => {
+  console.log('3');
+  queueMicrotask(() => console.log('4'));
+});
+queueMicrotask(() => console.log('5'));
+console.log('6');</code></pre>
+            </div>
+            <span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> Thứ tự:
+              <code>1 → 6 → 3 → 5 → 4 → 2</code>. Giải thích: <code>1</code> và
+              <code>6</code> chạy đồng bộ trên Call Stack trước. Khi Stack rỗng,
+              Event Loop drain toàn bộ Microtask Queue: chạy
+              <code>3</code> (Promise), lúc này đẩy <code>4</code> vào cuối hàng
+              đợi microtask, tiếp tục chạy <code>5</code> (queueMicrotask trước
+              đó), rồi drain tiếp <code>4</code>. Chỉ sau khi sạch bóng
+              microtasks, Event Loop mới lấy macrotask
+              <code>2</code> (setTimeout) từ Task Queue.</span
+            >
+          </li>
+          <li style="margin-bottom: 12px">
+            <strong
+              >Câu hỏi 2: <code>requestAnimationFrame (rAF)</code> nằm ở vị trí
+              nào trong chu kỳ Event Loop? Tại sao làm animation mượt 60fps phải
+              dùng rAF thay vì <code>setTimeout(fn, 16)</code>?</strong
+            >
+            <br /><span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> rAF nằm ở bước
+              <em>Rendering Phase</em> của trình duyệt (chạy sau khi Microtasks
+              drain hết và ngay trước khi trình duyệt thực hiện Layout & Paint).
+              <code>setTimeout(fn, 16)</code> không đồng bộ với tần số quét màn
+              hình (Display Refresh Rate) và có thể bị trễ do các macrotask khác
+              chắn đường, gây ra hiện tượng rớt frame (Jank/Tearing). rAF đảm
+              bảo callback chỉ chạy chính xác 1 lần trước mỗi lần màn hình chuẩn
+              bị quét lại điểm ảnh.</span
+            >
+          </li>
+          <li style="margin-bottom: 12px">
+            <strong
+              >Câu hỏi 3: Hiện tượng Microtask Starvation (đói Macrotask) là gì?
+              Đoạn code nào có thể gây treo UI mà không ném lỗi Stack
+              Overflow?</strong
+            >
+            <br /><span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> Microtask Starvation xảy ra khi một
+              microtask liên tục thêm microtask mới vào hàng đợi (ví dụ:
+              <code
+                >function loop() { Promise.resolve().then(loop); } loop();</code
+              >). Vì Event Loop bắt buộc phải
+              <em>drain cạn kiệt toàn bộ Microtask Queue</em> trước khi render
+              hoặc lấy Macrotask tiếp theo, trình duyệt sẽ bị đóng băng hoàn
+              toàn (UI Freeze), không nhận tương tác click hay timer mà không
+              báo lỗi Maximum Call Stack Size Exceeded (vì Call Stack đã pop sau
+              mỗi microtask).</span
+            >
+          </li>
+          <li>
+            <strong
+              >Câu hỏi 4: <code>queueMicrotask(fn)</code> khác gì với
+              <code>Promise.resolve().then(fn)</code>? Khi nào nên dùng
+              <code>queueMicrotask</code>?</strong
+            >
+            <br /><span style="color: var(--text-soft); font-size: 14px"
+              ><strong>Trả lời 60s:</strong> Cả hai đều đưa callback vào
+              Microtask Queue, nhưng <code>queueMicrotask()</code> là Web API
+              chuẩn (WHATWG) không tạo ra đối tượng Promise trung gian trên
+              Memory Heap → nhẹ hơn, nhanh hơn và không cần xử lý unhandled
+              promise rejections. Dùng <code>queueMicrotask</code> khi bạn muốn
+              hoãn thực thi một hàm đồng bộ xuống ngay sau tick hiện tại mà
+              không cần đến tính năng Promise chaining.</span
+            >
+          </li>
+        </ol>
+      </div>
+
+      <!-- QUIZ -->
+      <div class="quiz">
+        <h3>🧠 Kiểm tra nhanh (feedback ngay)</h3>
+
+        <div class="q">
+          Câu 1. Sau khi một macrotask kết thúc, Event Loop làm gì tiếp theo?
+        </div>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Sai — Event Loop không lấy macrotask tiếp theo ngay. Nó phải drain toàn bộ microtask queue trước."
+        >
+          A. Lấy macrotask tiếp theo từ Macrotask Queue ngay lập tức
+        </button>
+        <button
+          class="opt"
+          data-correct="true"
+          data-explain="Đúng! Sau mỗi macrotask, Event Loop drain toàn bộ Microtask Queue (bao gồm cả microtask được thêm vào trong khi drain). Chỉ khi queue rỗng mới render (nếu cần) rồi lấy macrotask tiếp theo."
+        >
+          B. Drain toàn bộ Microtask Queue, sau đó render (nếu cần), rồi mới lấy
+          macrotask tiếp
+        </button>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Không chính xác — render chỉ xảy ra SAU khi microtask queue rỗng, không phải ngay sau macrotask."
+        >
+          C. Render frame ngay lập tức, rồi mới xử lý microtasks
+        </button>
+        <div class="feedback"></div>
+
+        <div class="q">
+          Câu 2. Đoạn code
+          <code>Promise.resolve().then(A); setTimeout(B, 0);</code> — thứ tự
+          thực thi là gì?
+        </div>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Sai — setTimeout tuy delay=0 nhưng vẫn là macrotask, luôn chạy sau microtask."
+        >
+          A. B chạy trước A vì setTimeout được đăng ký trước
+        </button>
+        <button
+          class="opt"
+          data-correct="true"
+          data-explain="Đúng! A là microtask (Promise.then), B là macrotask (setTimeout). Dù cả hai đều được đăng ký xong trước khi stack rỗng, microtask A sẽ chạy trước macrotask B."
+        >
+          B. A chạy trước B — Promise.then là microtask, ưu tiên hơn macrotask
+        </button>
+        <button
+          class="opt"
+          data-correct="false"
+          data-explain="Không — thứ tự hoàn toàn xác định: microtask luôn trước macrotask. Đây là đặc tả của HTML Standard."
+        >
+          C. Không xác định — tùy thuộc vào browser
+        </button>
+        <div class="feedback"></div>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div class="callout tip">
+        <div class="ct">✅ Bạn vừa đạt được</div>
+        <ul class="checklist">
+          <li>
+            Mô tả chính xác Call Stack LIFO và điều kiện stack rỗng để Event
+            Loop hoạt động
+          </li>
+          <li>Liệt kê được các nguồn Macrotask và Microtask</li>
+          <li>
+            Giải thích thuật toán Event Loop: 1 macrotask → drain microtasks →
+            render → lặp
+          </li>
+          <li>
+            Biết rAF nằm ở bước render, sau microtasks và trước macrotask tiếp
+            theo
+          </li>
+          <li>
+            Predict được output của code mix Promise/setTimeout/queueMicrotask
+          </li>
+        </ul>
+      </div>
+
+      <h2>8. Câu hỏi tư duy (bắc cầu sang bài sau)</h2>
+      <p>
+        Bạn đã hiểu Promise.then() tạo microtask. Nhưng bên trong Promise hoạt
+        động thế nào? Nó là một "state machine" — khi nào chuyển từ
+        <em>pending</em> sang <em>fulfilled</em> hay <em>rejected</em>? Và tại
+        sao <code>async/await</code> được gọi là "syntactic sugar" của Promise?
+      </p>
+
+      <div class="next-box">
+        <div class="nl">→ Bài tiếp theo</div>
+        <div class="nt">
+          Bài 10 · Async Execution: Promise Internals, Async/Await &amp; Memory
+          Leaks
+        </div>
+        <p class="nd">
+          Hiểu Promise như state machine 3 trạng thái, desugaring của
+          async/await, so sánh Promise.all vs allSettled vs race vs any, và cách
+          Promise unresolved gây memory leak.
+        </p>
+      </div>
+
+      <div class="navbar">
+        <a href="0008-v8-engine-gc.html">← Trước</a>
+        <a href="index.html">🏠 Mục lục</a>
+        <a href="#" class="disabled">Sau →</a>
+      </div>
+
+      <p class="try-it">
+        💬 <strong>Tôi là người dạy của bạn.</strong> Hỏi lại bất cứ điều gì
+        chưa rõ nhé!
+      </p>
+    </div>
+    <script src="lesson-enhance.js"></script>
+  </body>
+</html>
