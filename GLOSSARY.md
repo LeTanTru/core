@@ -4,6 +4,26 @@
 
 ---
 
+### Mạng Máy Tính & Giao Thức Truyền Tải (Networking & Transport)
+
+- **Mô hình OSI (Open Systems Interconnection):** Mô hình tham chiếu lý thuyết 7 tầng chuẩn hóa bởi ISO (_Physical, Data Link, Network, Transport, Session, Presentation, Application_) mô tả cách dữ liệu được trừu tượng hóa và truyền đi trên mạng.
+- **Mô hình TCP/IP:** Kiến trúc mạng 4 tầng thực tế của Internet (_Application, Transport, Internet, Network Access_), gom 3 tầng L7/L6/L5 của OSI thành một tầng Application duy nhất.
+- **Encapsulation (Đóng gói dữ liệu):** Quá trình di chuyển dữ liệu từ tầng trên xuống tầng dưới tại máy gửi: `Data (L7)` → thêm TCP Header thành `Segment (L4)` → thêm IP Header thành `Packet (L3)` → thêm Ethernet MAC Header/Trailer thành `Frame (L2)` → biến thành `Bits (L1)`.
+- **Decapsulation (Mở gói dữ liệu):** Quá trình bóc tách từng Header tương ứng từ tầng dưới ngược lên tầng trên tại máy nhận để trích xuất Payload ban đầu.
+- **DNS Resolution (Phân giải tên miền):** Quá trình chuyển đổi tên miền dạng chữ con người dễ đọc (như `google.com`) thành địa chỉ IP máy chủ (như `142.250.190.46`).
+- **DNS 4-Layer Cache:** Thứ tự tra cứu cache DNS từ gần đến xa: (1) Browser Cache (RAM) → (2) OS Cache / file `hosts` → (3) Router Cache → (4) ISP Recursive Resolver (nhà mạng / public DNS 8.8.8.8).
+- **Authoritative Nameserver:** Máy chủ DNS nắm giữ bản ghi gốc (source of truth) và có thẩm quyền cuối cùng cho một tên miền cụ thể.
+- **TCP 3-Way Handshake (Bắt tay 3 bước):** Quy trình thiết lập kết nối tin cậy giữa Client và Server: (1) Client gửi `SYN` (Seq=x) → (2) Server phản hồi `SYN-ACK` (Seq=y, Ack=x+1) → (3) Client xác nhận `ACK` (Seq=x+1, Ack=y+1). Cả hai bên chuyển sang trạng thái `ESTABLISHED`.
+- **RTT (Round-Trip Time):** Khoảng thời gian (tính bằng mili-giây ms) để một gói tin đi từ Client tới Server và phản hồi quay trở lại Client.
+- **TCP Slow Start:** Thuật toán phòng ngừa tắc nghẽn của TCP: khởi đầu với cửa sổ nghẽn ban đầu `initcwnd = 10 MSS` (~14.6 KB) và nhân đôi kích thước dữ liệu gửi đi sau mỗi lượt RTT thành công.
+- **The 14KB Rule (Quy tắc 14KB):** Nguyên tắc tối ưu hiệu năng Frontend: giữ kích thước tài liệu HTML ban đầu (sau nén) dưới 14KB để Server có thể gửi trọn vẹn toàn bộ HTML tới trình duyệt ngay trong 1 lượt RTT đầu tiên, giúp FCP nhanh nhất.
+- **TCP Keep-Alive:** Cơ chế giữ kết nối TCP mở sau khi hoàn thành một request/response, cho phép các request HTTP tiếp theo tái sử dụng socket sẵn có (Warm Connection) mà không phải lặp lại chi phí bắt tay 3 bước (0 RTT Handshake).
+- **Resource Hints (`dns-prefetch` & `preconnect`):** Thẻ chỉ dẫn trình duyệt chuẩn bị trước tài nguyên: `dns-prefetch` chỉ phân giải IP; `preconnect` thực hiện trọn vẹn DNS + TCP Handshake + TLS Handshake để sẵn sàng tải tài nguyên tức thì.
+- **TTFB (Time to First Byte):** Khoảng thời gian từ khi trình duyệt gửi xong HTTP Request đến khi nhận được byte đầu tiên của HTTP Response từ máy chủ (phản ánh tốc độ xử lý Backend + độ trễ mạng).
+- **DoH (DNS-over-HTTPS):** Giao thức phân giải tên miền được mã hóa bằng TLS qua cổng HTTPS 443, ngăn chặn nhà mạng hoặc tin tặc nghe lén và giả mạo bản ghi DNS.
+
+---
+
 ### Hệ điều hành & Kiến trúc Máy tính (OS & Hardware)
 
 - **Process (Tiến trình):** Đơn vị thực thi độc lập được hệ điều hành cấp phát virtual address space riêng (Stack, Heap, Data segment), file descriptor table và CPU registers riêng. Các process cô lập hoàn toàn về bộ nhớ (Fault & Security isolation).
