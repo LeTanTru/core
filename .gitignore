@@ -24,3 +24,4 @@ Thumbs.db
 # Local agent & tooling settings
 .claude/settings.local.json
 .agents/settings.local.json
+
