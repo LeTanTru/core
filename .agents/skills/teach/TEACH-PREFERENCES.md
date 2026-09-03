@@ -7,9 +7,8 @@
 > 2. `<thư-mục-skill>` là thư mục chứa `SKILL.md`, tuỳ tool bạn dùng:
 >    `~/.claude/skills/teach/` · `~/.agents/skills/teach/` · `~/.gemini/config/skills/teach/`
 
-
 Khi dùng skill `/teach`, AI tuân theo cả 2 phần dưới. Người dùng học bằng **tiếng Việt**, TS/lập trình có nền,
-thích hiểu *bản chất* và *vì sao*, ghét học vẹt.
+thích hiểu _bản chất_ và _vì sao_, ghét học vẹt.
 
 ## A — Chất lượng dạy
 
@@ -41,7 +40,7 @@ thích hiểu *bản chất* và *vì sao*, ghét học vẹt.
     Cân bằng để KHÔNG biến thành nhồi nhét:
     - Độ sâu = **nhiều bài NHỎ**, không phải bài phình to (mỗi bài vẫn dạy MỘT thứ — giữ #2).
     - Phủ rộng nhưng **bám MISSION**; chủ đề ít liên quan thì **gộp thành 1 bài "survey"**, đừng kéo dài cho có (giữ #11 chống over-engineer).
-    - Lộ trình **CO GIÃN**: người học nắm nhanh thì gộp, vấp thì tách thêm bài luyện. Số bài phục vụ *độ vững*, không chạy cho đủ.
+    - Lộ trình **CO GIÃN**: người học nắm nhanh thì gộp, vấp thì tách thêm bài luyện. Số bài phục vụ _độ vững_, không chạy cho đủ.
 16. **Trình bày TOÀN CẢNH lộ trình NGAY sau khi chốt MISSION, trước khi dạy bài đầu.** Cho người học thấy bức tranh lớn:
     danh sách module + **số bài ước tính** + thứ tự + lý do từng phần có mặt. Rồi hỏi muốn **thêm/bớt/đổi thứ tự** trước khi chốt.
     Đừng để toàn cảnh chỉ xuất hiện khi bị hỏi. (Mục lục `index.html` ở phần B phải phản chiếu đúng toàn cảnh này, gồm cả bài "Sắp tới".)
@@ -49,7 +48,7 @@ thích hiểu *bản chất* và *vì sao*, ghét học vẹt.
     công cụ, phần mềm, thao tác máy…). Người học phải có môi trường chạy được để làm theo — KHÔNG học "chay". Bài 00 phải:
     - **Dò tiền đề trên MÁY THẬT của người học trước** (vd chạy `node -v`, kiểm phiên bản công cụ đã cài) rồi tailor hướng dẫn
       theo đúng máy đó; báo rõ cái gì đã có, cái gì cần cài — không đưa hướng dẫn chung chung.
-    - **Từng bước ĐÁNH SỐ**, mỗi bước một lệnh/thao tác **copy-paste được**, kèm giải thích *vì sao* (giữ #5), comment tiếng Việt trong code.
+    - **Từng bước ĐÁNH SỐ**, mỗi bước một lệnh/thao tác **copy-paste được**, kèm giải thích _vì sao_ (giữ #5), comment tiếng Việt trong code.
     - Kết bằng **"sanity check" tối thiểu** chứng minh cả bộ máy chạy được (vd test `1+1===2` ra xanh) + **checklist tự kiểm** trước khi qua bài sau.
     - **TỰ CHẠY THỬ đủ các bước trong thư mục tạm để xác nhận ra kết quả THẬT trước khi giao** (giữ #6: không tin trí nhớ);
       ghi rõ phiên bản đã kiểm chứng (vd "đã test với Vitest 4.1.10 / Node 22").
@@ -131,11 +130,13 @@ Thư mục `<thư-mục-skill>/assets/` chứa nguồn chân lý:
 - `INDEX-TEMPLATE.html` — khung mục lục (hero → intro-card → progress bar → các module với badge done/now/soon).
 
 **Quy trình khi bắt đầu một khoá mới** (hoặc khi khoá chưa có asset):
+
 1. `cp <thư-mục-skill>/assets/lesson.css <thư-mục-skill>/assets/lesson-enhance.js <workspace>/lessons/`
 2. Tạo `lessons/index.html` từ `INDEX-TEMPLATE.html`; mỗi bài từ `LESSON-TEMPLATE.html`. Chỉ điền nội dung — KHÔNG đổi `<head>`/`<style>`/class.
 3. **Muốn đổi style cho TẤT CẢ khoá về sau** → sửa file trong `<thư-mục-skill>/assets/` (nguồn chung), rồi copy đè lại vào các khoá đang học. Đừng sửa lẻ trong từng khoá.
 
 **Mở lại một khoá CŨ → đồng bộ asset TRƯỚC khi soạn bài mới** (bắt buộc, làm một lần ở đầu phiên):
+
 1. `diff` `lessons/lesson.css` và `lessons/lesson-enhance.js` với bản ở `<thư-mục-skill>/assets/`; lệch thì copy đè.
 2. **Copy đè xong phải MỞ LẠI 2–3 bài cũ kiểm mắt.** Khoá soạn từ trước khi có bộ asset thường dùng class tự chế
    (`.next` thay `.next-box`, `.ask`, `footer` riêng, JS quiz viết tay…) mà CSS chuẩn không có → đè xong là vỡ layout.
@@ -176,11 +177,10 @@ Thư mục `<thư-mục-skill>/assets/` chứa nguồn chân lý:
    - **Cần THƯ MỤC MỚI chưa tồn tại** (vd `nested/src/`): PHẢI có lệnh `mkdir -p <đường-dẫn>` tường minh trong
      một `.code-block` bash riêng, đặt trước khối code của file — bước này không thể tự suy ra được.
 
-## Lưu ý
-- **Git "commit theo bài" — ĐÃ được ủy quyền cho khoá /teach.** Quy trình mặc định: **chỉ khi workspace có git repo + remote**,
-  sau khi người học xác nhận **hoàn thành một bài** (và trước khi sang bài mới), thì **commit + push** phần thuộc bài đó.
-  - Mỗi bài là 1 commit. Message: `teach(<chủ-đề>): Bài NN - <tiêu đề>` (vd: `teach(sql): Bài 01 - Tư duy SQL khai báo`).
-  - Gom cả file phụ trợ của bài (cập nhật `index.html`, `reference/*`, `learning-records/*`) vào commit của bài đó.
+- **Git "commit theo bài" & "nhánh theo bài" — ĐÃ được ủy quyền cho khoá /teach.** Quy trình mặc định:
+  - **HỌC BÀI NÀO CHECKOUT NHÁNH BÀI ĐÓ TRƯỚC TIÊN**: Trước khi soạn bài, làm bài tập hay thực hành bài `NN`, **bắt buộc** checkout sang nhánh tương ứng: `git checkout -b lesson/<nn>-<ten-bai>` (hoặc `git checkout lesson/<nn>-<ten-bai>` nếu đã có). Không code trên `main` hoặc nhầm nhánh bài khác.
+  - **Khi hoàn thành bài**: commit + push nhánh đó lên remote repo. Mỗi bài là 1 commit rõ ràng (theo Conventional Commits).
+  - Gom cả file phụ trợ của bài (cập nhật `index.html`, `reference/*`, `learning-records/*`, `GLOSSARY.md`) vào commit của bài đó.
   - **Commit CẢ code bài tập người học tự viết** (thư mục "sân tập"/project thực hành, vd `*-practice/src/`), không chỉ file bài học —
     để lịch sử git phản ánh đúng tiến độ. Gom code bài tập của bài NN vào commit của bài NN. **Không tự bỏ qua** phần này; nếu quyết
     định để người học tự quản lý code bài tập thì phải HỎI trước, đừng mặc định.
