@@ -177,10 +177,12 @@ Thư mục `<thư-mục-skill>/assets/` chứa nguồn chân lý:
    - **Cần THƯ MỤC MỚI chưa tồn tại** (vd `nested/src/`): PHẢI có lệnh `mkdir -p <đường-dẫn>` tường minh trong
      một `.code-block` bash riêng, đặt trước khối code của file — bước này không thể tự suy ra được.
 
-- **Git "commit theo bài" & "nhánh theo bài" — ĐÃ được ủy quyền cho khoá /teach.** Quy trình mặc định:
-  - **HỌC BÀI NÀO CHECKOUT NHÁNH BÀI ĐÓ TRƯỚC TIÊN**: Trước khi soạn bài, làm bài tập hay thực hành bài `NN`, **bắt buộc** checkout sang nhánh tương ứng: `git checkout -b lesson/<nn>-<ten-bai>` (hoặc `git checkout lesson/<nn>-<ten-bai>` nếu đã có). Không code trên `main` hoặc nhầm nhánh bài khác.
-  - **Khi hoàn thành bài**: commit + push nhánh đó lên remote repo. Mỗi bài là 1 commit rõ ràng (theo Conventional Commits).
-  - Gom cả file phụ trợ của bài (cập nhật `index.html`, `reference/*`, `learning-records/*`, `GLOSSARY.md`) vào commit của bài đó.
+## Lưu ý
+
+- **Git "commit theo bài" — ĐÃ được ủy quyền cho khoá /teach.** Quy trình mặc định: **chỉ khi workspace có git repo + remote**,
+  sau khi người học xác nhận **hoàn thành một bài** (và trước khi sang bài mới), thì **commit + push** phần thuộc bài đó.
+  - Mỗi bài là 1 commit. Message: `teach(<chủ-đề>): Bài NN - <tiêu đề>` (vd: `teach(sql): Bài 01 - Tư duy SQL khai báo`).
+  - Gom cả file phụ trợ của bài (cập nhật `index.html`, `reference/*`, `learning-records/*`) vào commit của bài đó.
   - **Commit CẢ code bài tập người học tự viết** (thư mục "sân tập"/project thực hành, vd `*-practice/src/`), không chỉ file bài học —
     để lịch sử git phản ánh đúng tiến độ. Gom code bài tập của bài NN vào commit của bài NN. **Không tự bỏ qua** phần này; nếu quyết
     định để người học tự quản lý code bài tập thì phải HỎI trước, đừng mặc định.
